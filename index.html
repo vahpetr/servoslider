@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sliders controller</title>
+    <style>
+        .slider {
+            -webkit-appearance: none;
+            width: 100%;
+            height: 15px;
+            border-radius: 5px;  
+            background: #d3d3d3;
+            outline: none;
+            opacity: 0.7;
+            -webkit-transition: .2s;
+            transition: opacity .2s;
+        }
+
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 25px;
+            height: 25px;
+            border-radius: 50%; 
+            background: #04AA6D;
+            cursor: pointer;
+        }
+
+        .slider::-moz-range-thumb {
+            width: 25px;
+            height: 25px;
+            border-radius: 50%;
+            background: #04AA6D;
+            cursor: pointer;
+        }
+
+        .layout-container {
+            margin: auto auto;
+            max-width: 720px;
+            padding: 24px;
+        }
+
+        .slider-container {
+            padding-top: 8px;
+        }
+
+        p {
+            margin-top: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="layout-container">
+        <h1>Servos controller</h1>
+
+        <div class="sliders-container">
+            <div class="slider-container">
+                <input type="range" min="0" max="360" value="180" class="slider" id="slider1">
+                <p>Servo 1: <b id="slider1-value"></b></p>
+            </div>
+
+            <div class="slider-container">
+                <input type="range" min="0" max="360" value="180" class="slider" id="slider2">
+                <p>Servo 2: <b id="slider2-value"></b></p>
+            </div>
+
+            <div class="slider-container">
+                <input type="range" min="0" max="360" value="180" class="slider" id="slider3">
+                <p>Servo 3: <b id="slider3-value"></b></p>
+            </div>
+
+            <div class="slider-container">
+                <input type="range" min="0" max="360" value="180" class="slider" id="slider4">
+                <p>Servo 3: <b id="slider4-value"></b></p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let state = {}
+        let sliders = Array.from(document.querySelectorAll('.slider'))
+        
+        for (const slider of sliders) {
+
+            state[slider.id] = parseInt(slider.value, 10);
+
+            let labelEl = document.getElementById(`${slider.id}-value`);
+            labelEl.innerText = slider.value;
+
+            let send = debounce(() => {
+                console.log(state)
+                updateServosState(state);
+            }, 700);
+
+            slider.oninput = function() {
+                labelEl.innerText = this.value;
+                state[this.id] = parseInt(this.value, 10);
+
+                send();
+            }
+        }
+
+        updateServosState(state);
+
+        async function updateServosState(state) {
+            let response = await fetch("https://localhost:5000/api/servos/change", {
+                method: 'POST',
+                mode: 'cors',
+                cache: 'no-cache',
+                credentials: 'include',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                redirect: 'follow',
+                referrerPolicy: 'no-referrer',
+                body: JSON.stringify(state)
+            });
+            let result = await response.json();
+        }
+
+        function debounce(f, ms) {
+            let id;
+            return function() {
+                if (id) return;
+                id = setTimeout(() => {
+                    f.apply(this, arguments);
+                    id = null;
+                }, ms);
+            };
+        }
+    </script>
+</body>
+</html>
