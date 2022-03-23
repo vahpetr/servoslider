@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sliders controller</title>
+    <title>Servoslider</title>
     <style>
         .slider {
             -webkit-appearance: none;
@@ -80,25 +80,25 @@
 
     <script>
         let state = {}
-        let sliders = Array.from(document.querySelectorAll('.slider'))
-        
-        for (const slider of sliders) {
+
+        for (const slider of document.querySelectorAll('.slider')) {
 
             state[slider.id] = parseInt(slider.value, 10);
 
             let labelEl = document.getElementById(`${slider.id}-value`);
             labelEl.innerText = slider.value;
 
-            let send = debounce(() => {
+            let scheduleUpdateState = debounce(() => {
                 console.log(state)
                 updateServosState(state);
             }, 700);
 
             slider.oninput = function() {
-                labelEl.innerText = this.value;
                 state[this.id] = parseInt(this.value, 10);
+                
+                labelEl.innerText = this.value;
 
-                send();
+                scheduleUpdateState();
             }
         }
 
@@ -117,7 +117,7 @@
                 referrerPolicy: 'no-referrer',
                 body: JSON.stringify(state)
             });
-            let result = await response.json();
+            return response;
         }
 
         function debounce(f, ms) {
